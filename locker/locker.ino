@@ -8,8 +8,10 @@ char senha_digitada[4] = {'*', '*', '*', '*'};
 int indice_senha = 0;
 const int BOTAO_DIGITO = 7;
 const int BUZZER = 9;
+const int BOTAO_RESET = 6;
 bool estado = false;
 int tentativa = 1;
+bool alarme = false;
 
 // usado para detectar o momento exato em que o botao e pressionado
 bool botao_digito_anterior = HIGH;
@@ -122,18 +124,23 @@ void senha_incorreta_msg(){
 }
 
 bool tresTentativas(){
-  if(tentativa > 3){
-    lcd_1.clear();
-    lcd_1.setCursor(0, 0);
-    lcd_1.print("Limite");
-    lcd_1.setCursor(0, 1);
-    lcd_1.print("Atingido!");
+   if(tentativa > 3){
+
+    if(!alarme){ // se tiver alarme, a tela n pisca por causa do .clear()
+      lcd_1.clear();
+      lcd_1.setCursor(0, 0);
+      lcd_1.print("Limite");
+      lcd_1.setCursor(0, 1);
+      lcd_1.print("Atingido!");
+
+      alarme = true;
+    }
 
     tone(BUZZER, 1000);
-    delay(300);
+    delay(50);
 
     noTone(BUZZER);
-    delay(300);
+    delay(50);
 
     return true;
   }
@@ -141,15 +148,37 @@ bool tresTentativas(){
   return false;
 }
 
+void resetar_cofre(){
+  lcd_1.clear();
+  lcd_1.setCursor(0, 0);
+  lcd_1.print("Reset concluido");
+  delay(1000);
+
+  estado = false;
+  tentativa = 1;
+  alarme = false;
+
+  noTone(BUZZER);
+
+  resetar_senha();
+  cofre_fechado();
+}
+
 void setup(){
   lcd_1.begin(16, 2);
   valor_inicial_pot = analogRead(A0);
   pinMode(BOTAO_DIGITO, INPUT_PULLUP);
   pinMode(BUZZER, OUTPUT);
+  pinMode(BOTAO_RESET, INPUT_PULLUP);
   cofre_fechado();
 }
 
 void loop(){
+
+  if(digitalRead(BOTAO_RESET) == LOW){
+    resetar_cofre();
+    delay(300);
+  }
 
   if(tresTentativas()){
     return;
