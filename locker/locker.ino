@@ -8,11 +8,9 @@ char senha_digitada[4] = {'*', '*', '*', '*'};
 int indice_senha = 0;
 
 const int BOTAO_DIGITO = 7;
-const int BOTAO_CONFIRMAR = 8;
 
 // armazena o estado anterior dos botoes para detectar clique
 bool botao_digito_anterior = HIGH;
-bool botao_confirmar_anterior = HIGH;
 
 // controla se o potenciometro ja foi movimentado
 bool potenciometro_mexido = false;
@@ -108,7 +106,6 @@ void setup(){
   lcd_1.begin(16, 2);
   valor_inicial_pot = analogRead(A0);
   pinMode(BOTAO_DIGITO, INPUT_PULLUP);
-  pinMode(BOTAO_CONFIRMAR, INPUT_PULLUP);
   cofre_fechado();
 }
 
@@ -130,28 +127,23 @@ void loop(){
       indice_senha++;
       potenciometro_mexido = false;
       valor_inicial_pot = analogRead(A0); // novo valor inicial do potenciometro é lido novamente
+      if(indice_senha == TAMANHO_SENHA){ // verifica se todos os 4 digitos foram escritos, ai valida automaticamente
+          cofre_carregando();
+          delay(800);
+
+          if(verificar_senha()){
+              senha_correta_msg();
+              delay(1000);
+              cofre_aberto();
+          }
+          else{
+              senha_incorreta_msg();
+              delay(1000);
+              cofre_fechado();
+          }
+          resetar_senha();
+      }
     }
   }
   botao_digito_anterior = botao_digito_atual;
-
-  bool botao_confirmar_atual = digitalRead(BOTAO_CONFIRMAR);
-  if(botao_confirmar_anterior == HIGH && botao_confirmar_atual == LOW){
-    cofre_carregando();
-    delay(800);
-
-    if(verificar_senha()){
-      senha_correta_msg();
-      delay(1000);
-      cofre_aberto();
-    }
-    else{
-      senha_incorreta_msg();
-      delay(1000);
-      cofre_fechado();
-    }
-
-    resetar_senha();
-  }
-  botao_confirmar_anterior = botao_confirmar_atual;
-  
 }
