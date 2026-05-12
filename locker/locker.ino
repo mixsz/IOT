@@ -6,10 +6,12 @@ char senha_correta[] = {'4', '4', '4', '4'};
 const int TAMANHO_SENHA = 4;
 char senha_digitada[4] = {'*', '*', '*', '*'};
 int indice_senha = 0;
-
 const int BOTAO_DIGITO = 7;
+const int BUZZER = 9;
+bool estado = false;
+int tentativa = 1;
 
-// armazena o estado anterior dos botoes para detectar clique
+// usado para detectar o momento exato em que o botao e pressionado
 bool botao_digito_anterior = HIGH;
 
 // controla se o potenciometro ja foi movimentado
@@ -53,74 +55,116 @@ void mostrar_tentativa(char digito_atual){
 
 // reinicia a tentativa atual da senha
 void resetar_senha(){
-    indice_senha = 0;
+  indice_senha = 0;
 
-    for(int i = 0; i < TAMANHO_SENHA; i++){
-        senha_digitada[i] = '*';
-    }
+  for(int i = 0; i < TAMANHO_SENHA; i++){
+    senha_digitada[i] = '*';
+  }
 
-    potenciometro_mexido = false;
-    valor_inicial_pot = analogRead(A0);
+  potenciometro_mexido = false;
+  valor_inicial_pot = analogRead(A0);
 }
 
 // converte o valor analogico do potenciometro em um digito
 char ler_digito(){
-    int potenciometro = analogRead(A0);
 
-    if(potenciometro < 150) return '0';
-    else if(potenciometro < 350) return '1';
-    else if(potenciometro < 550) return '2';
-    else if(potenciometro < 750) return '3';
+  int potenciometro = analogRead(A0);
 
-    return '4';
+  if(potenciometro < 150) return '0';
+  else if(potenciometro < 350) return '1';
+  else if(potenciometro < 550) return '2';
+  else if(potenciometro < 750) return '3';
+
+  return '4';
 }
 
 // verifica se a senha digitada corresponde a senha correta
 bool verificar_senha(){
-    if(indice_senha != TAMANHO_SENHA){
-        return false;
-    }
+  if(indice_senha != TAMANHO_SENHA){
+    return false;
+  }
 
-    for(int i = 0; i < TAMANHO_SENHA; i++){
-        if(senha_digitada[i] != senha_correta[i]){
-            return false;
-        }
+  for(int i = 0; i < TAMANHO_SENHA; i++){
+    if(senha_digitada[i] != senha_correta[i]){
+      return false;
     }
+  }
 
-    return true;
+  return true;
 }
 
 void senha_correta_msg(){
   lcd_1.clear();
   lcd_1.setCursor(0, 0);
   lcd_1.print("Senha correta!");
+  estado = true;
+  tentativa = 1;
 }
 
 void senha_incorreta_msg(){
   lcd_1.clear();
   lcd_1.setCursor(0, 0);
   lcd_1.print("Senha incorreta!");
+
+  if(tentativa == 3) return; // 0 tentativas restantes
+
+  lcd_1.setCursor(0, 1);
+  if(tentativa == 2){
+    lcd_1.print("Resta ");
+    lcd_1.print(3 - tentativa);
+    lcd_1.print(" chance");
+  }
+  else{
+    lcd_1.print("Restam ");
+    lcd_1.print(3 - tentativa);
+    lcd_1.print(" chances");
+  }
+}
+
+bool tresTentativas(){
+  if(tentativa > 3){
+    lcd_1.clear();
+    lcd_1.setCursor(0, 0);
+    lcd_1.print("Limite");
+    lcd_1.setCursor(0, 1);
+    lcd_1.print("Atingido!");
+
+    tone(BUZZER, 1000);
+    delay(300);
+
+    noTone(BUZZER);
+    delay(300);
+
+    return true;
+  }
+
+  return false;
 }
 
 void setup(){
   lcd_1.begin(16, 2);
   valor_inicial_pot = analogRead(A0);
   pinMode(BOTAO_DIGITO, INPUT_PULLUP);
+  pinMode(BUZZER, OUTPUT);
   cofre_fechado();
 }
 
 void loop(){
-  int potenciometro = analogRead(A0);
 
-  if(abs(potenciometro - valor_inicial_pot) > 20){ // verifica oscilacao do potenciometro para definir o valor inicial da senha
+  if(tresTentativas()){
+    return;
+  }
+
+  int potenciometro = analogRead(A0);
+  char digito_potenciometro = ler_digito();
+  mostrar_tentativa(digito_potenciometro);
+  bool botao_digito_atual = digitalRead(BOTAO_DIGITO);
+
+  // verifica oscilacao do potenciometro para definir o valor inicial da senha, se o valor estiver absoluto (abs) 20 de diferenca é pq foi mexido
+  if(abs(potenciometro - valor_inicial_pot) > 20){
     potenciometro_mexido = true;
   }
 
-  char digito_potenciometro = ler_digito();
-
-  mostrar_tentativa(digito_potenciometro);
-
-  bool botao_digito_atual = digitalRead(BOTAO_DIGITO);
   if(botao_digito_anterior == HIGH && botao_digito_atual == LOW){ // detecta apenas o momento do clique do botao
     if(indice_senha < TAMANHO_SENHA){
       senha_digitada[indice_senha] = digito_potenciometro;
@@ -128,20 +172,26 @@ void loop(){
       potenciometro_mexido = false;
       valor_inicial_pot = analogRead(A0); // novo valor inicial do potenciometro é lido novamente
       if(indice_senha == TAMANHO_SENHA){ // verifica se todos os 4 digitos foram escritos, ai valida automaticamente
-          cofre_carregando();
-          delay(800);
 
-          if(verificar_senha()){
-              senha_correta_msg();
-              delay(1000);
-              cofre_aberto();
-          }
-          else{
-              senha_incorreta_msg();
-              delay(1000);
-              cofre_fechado();
-          }
-          resetar_senha();
+        // pra mostrar o ultimo digito antes de mostrar a mensagem de senha correta/incorreta
+        mostrar_tentativa(digito_potenciometro); 
+        delay(500);
+
+        cofre_carregando();
+        delay(800);
+
+        if(verificar_senha()){
+          senha_correta_msg();
+          delay(1100);
+          cofre_aberto();
+        }
+        else{
+          senha_incorreta_msg();
+          delay(1500);
+          cofre_fechado();
+          tentativa++;
+        }
+        resetar_senha();
       }
     }
   }
