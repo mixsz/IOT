@@ -43,7 +43,7 @@ void isr_reset(){ // funcao de interrupcao do botao reset
 
 // funcoes para manipular a senha
 char ler_digito(){
-  int v = analogRead(A0);
+  int v = analogRead(A0); // leitura do potenciometro
   if(v < 150) return '0';
   if(v < 350) return '1';
   if(v < 550) return '2';
