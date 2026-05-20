@@ -50,11 +50,15 @@ Sistema embarcado de controle de acesso para um compartimento seguro (cofre), im
 
 ### Diagrama de Conexão
 
-![Diagrama de conexão](docs/diagrama.png)
+![Diagrama de conexão](docs/diagramaDeConexao.png)
 
 ### Circuito no Tinkercad
 
 ![Circuito no Tinkercad](docs/circuito.png)
+
+### Diagrama de Estados (FSM)
+
+![Diagrama de estados](docs/diagramaDeEstados.png)
 
 ---
 
@@ -122,7 +126,7 @@ loop()
 ## Como simular
 
 1. Acesse o [Tinkercad](https://www.tinkercad.com) e crie um novo circuito
-2. Monte o hardware conforme o diagrama em `docs/diagrama.png`
+2. Monte o hardware conforme o diagrama em `docs/diagramaDeConexao.png`
 3. Cole o código de `locker.ino` no editor do Tinkercad
 4. Inicie a simulação
 
@@ -134,9 +138,10 @@ loop()
 .
 ├── README.md          # Este arquivo
 ├── docs/
-│   ├── diagrama.png        # Diagrama esquemático do circuito
-│   ├── circuito.png        # Visão do circuito na protoboard
-│   └── relatorio.pdf       # Relatório técnico do projeto
+│   ├── diagramaDeConexao.png   # Diagrama esquemático do circuito
+│   ├── diagramaDeEstados.png   # Diagrama de estados do sistema
+│   ├── circuito.png            # Visão do circuito na protoboard
+│   └── relatorio.pdf           # Relatório técnico do projeto
 └── locker/
-    └── locker.ino          # Código-fonte do firmware
+    └── locker.ino              # Código-fonte do firmware
 ```
