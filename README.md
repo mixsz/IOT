@@ -126,7 +126,7 @@ loop()
 ## Como simular
 
 1. Acesse o [Tinkercad](https://www.tinkercad.com) e crie um novo circuito
-2. Monte o hardware conforme o diagrama em `docs/diagramaDeConexao.png`
+2. Monte o hardware conforme o circuito em `docs/circuito.png`
 3. Cole o código de `locker.ino` no editor do Tinkercad
 4. Inicie a simulação
 
