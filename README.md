@@ -2,9 +2,6 @@
 
 Projeto desenvolvido para a disciplina de **IOT**.
 
-- Danilo Cardoso Pradella - RA: 22.126.096-1
-- Caue Ohta - RA: 22.126.093-8
-
 ---
 
 ## Descrição
